@@ -1,0 +1,10 @@
+[project]
+name = "nagare-contracts"
+version = "0.1.0"
+description = "Shared contracts for the Nagare trading system (jcdd/nagare/ronin/torii)"
+requires-python = ">=3.11"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
