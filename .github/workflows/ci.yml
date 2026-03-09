@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package
+        run: pip install -e .
+
+      - name: Import smoke test
+        run: |
+          python -c "
+          from nagare_contracts import (
+              OrderIntent, ExecutionReport, Heartbeat,
+              Broker, BrokerError, OrderRequest, OrderResult,
+              Quote, Position, ReconciliationResult, AccountSummary, CashMarginStatus,
+              ORDER_STATES, SIGNAL_STATES, APPROVAL_REASON_CODES,
+              SLIPPAGE_PCT, LIQUIDITY_TIERS, COMMISSION_PER_TRADE,
+              FILL_MODEL_VERSION, GAP_WARNING_PCT, STALE_SIGNAL_DAYS,
+              EXECUTION_STATUSES, HEARTBEAT_STATUSES, PROPOSAL_TRANSITIONS,
+          )
+          print('All imports OK')
+          "
+
+      - name: Dataclass instantiation test
+        run: |
+          python -c "
+          from nagare_contracts import (
+              OrderIntent, ExecutionReport, Heartbeat,
+              BrokerError, OrderRequest, OrderResult,
+              Quote, Position, ReconciliationResult, AccountSummary, CashMarginStatus,
+              ORDER_STATES,
+          )
+
+          intent = OrderIntent(
+              intent_id='test', signal_id='s1', ticker='1301',
+              side='BUY', qty=100, intended_price=1500.0,
+              strategy_version='BT-010', config_hash='abc123',
+          )
+          assert intent.ticker == '1301'
+
+          report = ExecutionReport(
+              order_id='o1', intent_id='i1', signal_id='s1',
+              broker='paper', broker_order_id=None, status='FILLED',
+          )
+          assert report.status == 'FILLED'
+
+          hb = Heartbeat(
+              component='ci_test', status='OK',
+              last_action='test', checked_at='2026-01-01T00:00:00+09:00',
+          )
+          assert hb.status == 'OK'
+
+          err = BrokerError(source='system', code='TEST', reason='test', retryable=True)
+          assert err.retryable is True
+
+          req = OrderRequest(
+              signal_id='s1', ticker='1301', side='BUY',
+              qty=100, intended_price=1500.0, order_type='MARKET',
+          )
+          assert req.order_type == 'MARKET'
+
+          result = OrderResult(
+              order_id='o1', broker_order_id='B1', status='FILLED',
+              fill_price=1501.0, fill_qty=100, slippage_bps=6.7,
+              fill_time='2026-01-01T09:00:01+09:00', reject_reason=None,
+          )
+          assert result.fill_price == 1501.0
+
+          assert len(ORDER_STATES) == 6
+          assert 'FILLED' in ORDER_STATES
+
+          print('All dataclass instantiation tests PASSED')
+          "
