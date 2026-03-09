@@ -29,6 +29,15 @@ from nagare_contracts.states import (  # noqa: F401
     SIGNAL_STATES,
     PROPOSAL_TRANSITIONS,
     APPROVAL_REASON_CODES,
+    STATUS_CHANGE_FIELDS,
+    LIFECYCLE_STAGES,
+    STATUS_CHANGE_REASON_CODES,
+    STATUS_CHANGE_ACTORS,
+    STATUS_CHANGE_COMPONENTS,
+)
+from nagare_contracts.validation import (  # noqa: F401
+    ValidationError,
+    validate_status_change,
 )
 from nagare_contracts.execution import (  # noqa: F401
     SLIPPAGE_PCT,

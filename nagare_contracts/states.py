@@ -28,3 +28,37 @@ APPROVAL_REASON_CODES = [
     "EVIDENCE_OLD",          # Evidence older than threshold
     "EVIDENCE_STALE",        # Evidence missing or unparseable
 ]
+
+# ---------------------------------------------------------------------------
+# Status Change Event — enums, schema, allowed values
+# ---------------------------------------------------------------------------
+
+# Fields that can be changed via StatusChangeEvent
+STATUS_CHANGE_FIELDS = ["lifecycle_stage", "gate_status", "readiness_status"]
+
+# Allowed values per field
+LIFECYCLE_STAGES = [
+    "Paper Trading", "Gate Passed", "Ready for Incubation",
+    "Incubation", "Production Ready", "Production",
+]
+
+# reason_code for status changes
+STATUS_CHANGE_REASON_CODES = [
+    "gate-review",           # Gate evaluation passed
+    "readiness-evidence",    # Production Readiness item PASS/FAIL change
+    "phase-transition",      # Migration phase progression
+    "manual-override",       # Manual status correction
+    "rollback",              # Revert to previous status
+]
+
+# Known actors (human + automated)
+STATUS_CHANGE_ACTORS = [
+    "jarvis",                # Human operator
+    "ronin_gate",            # Automated gate evaluation
+    "torii_failsafe",        # Automated failsafe trigger
+    "nagare_monitor",        # Automated anomaly detection
+    "ci-bot",                # CI/CD automation
+]
+
+# Source components (4 repos + manual)
+STATUS_CHANGE_COMPONENTS = ["ronin", "torii", "nagare", "jcdd", "manual"]
