@@ -16,6 +16,7 @@ from nagare_contracts.states import (
     SIGNAL_STATES,
     STATUS_CHANGE_ACTORS,
     STATUS_CHANGE_COMPONENTS,
+    STATUS_CHANGE_FIELD_ALLOWED_VALUES,
     STATUS_CHANGE_FIELDS,
     STATUS_CHANGE_REASON_CODES,
 )
@@ -34,14 +35,15 @@ _ALL_KNOWN_VALUES: set[str] = set(
     LIFECYCLE_STAGES + ORDER_STATES + SIGNAL_STATES
     + STATUS_CHANGE_FIELDS + STATUS_CHANGE_REASON_CODES
     + STATUS_CHANGE_ACTORS + STATUS_CHANGE_COMPONENTS
+    + [
+        value
+        for allowed_values in STATUS_CHANGE_FIELD_ALLOWED_VALUES.values()
+        for value in allowed_values
+    ]
 )
 
 # Field-specific allowed values for from/to (keyed by the `field` value)
-_FIELD_ALLOWED_VALUES: dict[str, list[str]] = {
-    "lifecycle_stage": LIFECYCLE_STAGES,
-    # gate_status and readiness_status are free-form for now;
-    # only lifecycle_stage has a fixed enum.
-}
+_FIELD_ALLOWED_VALUES: dict[str, list[str]] = STATUS_CHANGE_FIELD_ALLOWED_VALUES
 
 # Required fields for a StatusChangeEvent
 _REQUIRED_FIELDS = [

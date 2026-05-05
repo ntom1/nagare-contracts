@@ -4,6 +4,8 @@ Single source of truth for order states, signal states, proposal
 transitions, and approval reason codes.
 """
 
+from dataclasses import dataclass
+
 # Normalized order states (broker-agnostic)
 ORDER_STATES = ["PENDING", "SENT", "PARTIAL_FILL", "FILLED", "REJECTED", "CANCELLED"]
 
@@ -41,6 +43,56 @@ LIFECYCLE_STAGES = [
     "Paper Trading", "Gate Passed", "Ready for Incubation",
     "Incubation", "Production Ready", "Production",
 ]
+
+GATE_STATUSES = [
+    "NOT_YET (30+ trades蓄積待ち)",
+    "IN_PROGRESS",
+    "PASS",
+    "FAIL",
+]
+
+READINESS_STATUSES = [
+    "NOT READY",
+    "PARTIALLY READY",
+    "READY",
+]
+
+STATUS_CHANGE_FIELD_ALLOWED_VALUES = {
+    "lifecycle_stage": LIFECYCLE_STAGES,
+    "gate_status": GATE_STATUSES,
+    "readiness_status": READINESS_STATUSES,
+}
+
+
+@dataclass
+class StatusChangeEvent:
+    """Canonical schema for auditable status changes."""
+    field: str
+    from_value: str
+    to_value: str
+    reason_code: str
+    evidence: str
+    timestamp: str
+    actor: str
+    source_component: str
+    event_id: str | None = None
+
+    def to_validation_dict(self) -> dict:
+        """Return the wire shape consumed by validate_status_change()."""
+        event = {
+            "field": self.field,
+            "from": self.from_value,
+            "to": self.to_value,
+            "reason_code": self.reason_code,
+            "evidence": self.evidence,
+            "timestamp": self.timestamp,
+            "actor": self.actor,
+            "source_component": self.source_component,
+        }
+        if self.event_id is not None:
+            event["event_id"] = self.event_id
+        return event
+
 
 # reason_code for status changes
 STATUS_CHANGE_REASON_CODES = [
