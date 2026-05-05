@@ -210,6 +210,67 @@ def test_all_lifecycle_stages_accepted():
         assert errors == [], f"lifecycle_stage '{stage}' should be valid but got {errors}"
 
 
+def test_status_change_event_schema_round_trips_to_validator():
+    """Canonical StatusChangeEvent schema should match validator wire shape."""
+    from nagare_contracts.states import StatusChangeEvent
+
+    event = StatusChangeEvent(
+        field="lifecycle_stage",
+        from_value="Paper Trading",
+        to_value="Gate Passed",
+        reason_code="gate-review",
+        evidence="30+ trades, 6/6 criteria PASS",
+        timestamp="2026-04-15T10:00:00+09:00",
+        actor="ronin_gate",
+        source_component="ronin",
+        event_id="SCE-2026-04-15-001",
+    )
+
+    assert validate_status_change(event.to_validation_dict()) == []
+    assert event.to_validation_dict()["from"] == "Paper Trading"
+    assert event.to_validation_dict()["event_id"] == "SCE-2026-04-15-001"
+
+
+def test_gate_status_rejects_unknown_value():
+    """gate_status must reject typo/escape values instead of acting free-form."""
+    event = _valid_event()
+    event["field"] = "gate_status"
+    event["from"] = "unknown"
+    event["to"] = "PASS"
+    errors = validate_status_change(event)
+
+    from_errors = [e for e in errors if e.field == "from"]
+    assert len(from_errors) == 1
+    assert from_errors[0].code == "invalid_enum_value"
+
+
+def test_readiness_status_rejects_unknown_value():
+    """readiness_status must reject typo/escape values instead of acting free-form."""
+    event = _valid_event()
+    event["field"] = "readiness_status"
+    event["from"] = "PARTIALLY READY"
+    event["to"] = "N/A"
+    errors = validate_status_change(event)
+
+    to_errors = [e for e in errors if e.field == "to"]
+    assert len(to_errors) == 1
+    assert to_errors[0].code == "invalid_enum_value"
+
+
+def test_all_status_change_field_allowed_values_are_accepted():
+    """Every field-specific allowed value should pass its own from/to check."""
+    from nagare_contracts.states import STATUS_CHANGE_FIELD_ALLOWED_VALUES
+
+    for field, allowed_values in STATUS_CHANGE_FIELD_ALLOWED_VALUES.items():
+        for value in allowed_values:
+            event = _valid_event()
+            event["field"] = field
+            event["from"] = value
+            event["to"] = value
+            errors = validate_status_change(event)
+            assert errors == [], f"{field} value '{value}' should be valid but got {errors}"
+
+
 def test_deterministic_output():
     """Same input always produces same error codes in same order."""
     event = _valid_event()

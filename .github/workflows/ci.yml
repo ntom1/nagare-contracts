@@ -17,7 +17,9 @@ jobs:
           python-version: "3.12"
 
       - name: Install package
-        run: pip install -e .
+        run: |
+          pip install -e .
+          pip install pytest
 
       - name: Import smoke test
         run: |
@@ -27,6 +29,7 @@ jobs:
               Broker, BrokerError, OrderRequest, OrderResult,
               Quote, Position, ReconciliationResult, AccountSummary, CashMarginStatus,
               ORDER_STATES, SIGNAL_STATES, APPROVAL_REASON_CODES,
+              StatusChangeEvent, STATUS_CHANGE_FIELD_ALLOWED_VALUES,
               SLIPPAGE_PCT, LIQUIDITY_TIERS, COMMISSION_PER_TRADE,
               FILL_MODEL_VERSION, GAP_WARNING_PCT, STALE_SIGNAL_DAYS,
               EXECUTION_STATUSES, HEARTBEAT_STATUSES, PROPOSAL_TRANSITIONS,
@@ -84,3 +87,6 @@ jobs:
 
           print('All dataclass instantiation tests PASSED')
           "
+
+      - name: Run tests
+        run: pytest -q
