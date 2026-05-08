@@ -7,7 +7,11 @@ transitions, and approval reason codes.
 from dataclasses import dataclass
 
 # Normalized order states (broker-agnostic)
-ORDER_STATES = ["PENDING", "SENT", "PARTIAL_FILL", "FILLED", "REJECTED", "CANCELLED"]
+# Fix E-1: TRIGGER_PENDING for STOP / STOP_LIMIT awaiting trigger price.
+ORDER_STATES = [
+    "PENDING", "SENT", "TRIGGER_PENDING", "PARTIAL_FILL",
+    "FILLED", "REJECTED", "CANCELLED",
+]
 
 # Signal lifecycle states
 SIGNAL_STATES = ["GENERATED", "FILLED", "SKIPPED", "CANCELLED"]
