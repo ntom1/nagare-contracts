@@ -13,6 +13,22 @@ class OrderIntent:
     """Approved order intent from ronin, consumed by torii.
 
     ronin writes to DB, torii polls and executes.
+
+    Fix E-1 (broker逆指値 paired stop):
+        stop_loss_pct を指定するとgateway が entry fill 後に paired STOP 注文を
+        broker に提出し、当日ザラ場で SL を発火可能にする。
+        - BUY entry の場合: STOP SELL @ fill_price * (1 - stop_loss_pct)
+        - SELL entry (信用空売り) の場合: STOP BUY @ fill_price * (1 + stop_loss_pct)
+
+        None なら stop は emit されない (既存の MARKET-only 動作)。
+
+        take_profit_pct は同様に paired LIMIT (利確) を emit する場合に使う。
+        STOP / TP のいずれか一方のみ、両方、なし、を選べる。
+
+    paired_intent_id (出力時、gateway が記入):
+        STOP/TP として emit された intent は、entry intent の intent_id を
+        ここに保持する。ExecutionReport で entry/stop の対応を辿るための
+        link。ronin 側で OrderIntent を直接 STOP として書く場合は手動で設定。
     """
     intent_id: str
     signal_id: str
@@ -25,6 +41,13 @@ class OrderIntent:
     max_slippage_bps: float = 30.0
     urgency: str = "normal"   # "normal" | "immediate"
     approved_at: str = ""     # ISO 8601
+    # Fix E-1: paired stop / take-profit instructions
+    order_type: str = "MARKET"   # MARKET | LIMIT | STOP | STOP_LIMIT
+    stop_loss_pct: float | None = None
+    take_profit_pct: float | None = None
+    trigger_price: float | None = None        # for explicit STOP / STOP_LIMIT
+    trigger_above: bool | None = None         # True: 以上 / False: 以下
+    paired_intent_id: str | None = None       # parent intent_id (stop が紐付く entry)
 
 
 @dataclass
