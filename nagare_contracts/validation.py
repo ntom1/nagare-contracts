@@ -165,3 +165,78 @@ def validate_status_change(event: dict) -> list[ValidationError]:
                     errored_fields.add(key)
 
     return errors
+
+
+# ---------------------------------------------------------------------------
+# Fix E-1: OrderRequest validation
+# ---------------------------------------------------------------------------
+
+_ALLOWED_ORDER_TYPES = {"MARKET", "LIMIT", "STOP", "STOP_LIMIT"}
+
+
+def validate_order_request(order) -> list[ValidationError]:
+    """Validate an OrderRequest dataclass instance.
+
+    Returns empty list if valid. Each error follows the same shape as
+    validate_status_change for consistency.
+
+    Rules:
+    - order_type must be one of MARKET / LIMIT / STOP / STOP_LIMIT
+    - STOP / STOP_LIMIT require trigger_price > 0 and trigger_above is bool
+    - MARKET / LIMIT must NOT have trigger_price (precaution against accidental
+      dual-trigger orders)
+    - qty > 0
+    - intended_price >= 0 (MARKET allows 0)
+    """
+    errors: list[ValidationError] = []
+    order_type = str(getattr(order, "order_type", "") or "").upper()
+    qty = getattr(order, "qty", None)
+    intended = getattr(order, "intended_price", None)
+    trigger = getattr(order, "trigger_price", None)
+    trigger_above = getattr(order, "trigger_above", None)
+
+    if order_type not in _ALLOWED_ORDER_TYPES:
+        errors.append(ValidationError(
+            code="invalid_order_type",
+            field="order_type",
+            message=f"'{order_type}' not in {sorted(_ALLOWED_ORDER_TYPES)}",
+        ))
+        return errors  # 後続の判定は order_type 依存なので fail-fast
+
+    if not isinstance(qty, int) or qty <= 0:
+        errors.append(ValidationError(
+            code="invalid_qty",
+            field="qty",
+            message=f"qty must be positive int, got {qty!r}",
+        ))
+
+    if intended is None or float(intended) < 0:
+        errors.append(ValidationError(
+            code="invalid_intended_price",
+            field="intended_price",
+            message=f"intended_price must be >= 0, got {intended!r}",
+        ))
+
+    requires_trigger = order_type in {"STOP", "STOP_LIMIT"}
+    if requires_trigger:
+        if trigger is None or float(trigger) <= 0:
+            errors.append(ValidationError(
+                code="missing_trigger_price",
+                field="trigger_price",
+                message=f"{order_type} requires trigger_price > 0, got {trigger!r}",
+            ))
+        if not isinstance(trigger_above, bool):
+            errors.append(ValidationError(
+                code="missing_trigger_above",
+                field="trigger_above",
+                message=f"{order_type} requires trigger_above bool, got {trigger_above!r}",
+            ))
+    else:
+        if trigger is not None:
+            errors.append(ValidationError(
+                code="unexpected_trigger_price",
+                field="trigger_price",
+                message=f"{order_type} must not set trigger_price, got {trigger!r}",
+            ))
+
+    return errors

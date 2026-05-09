@@ -19,13 +19,30 @@ class BrokerError:
 
 @dataclass
 class OrderRequest:
-    """Outbound order request from signal pipeline to broker."""
+    """Outbound order request from signal pipeline to broker.
+
+    Fix E-1 (broker逆指値): order_type に STOP / STOP_LIMIT を追加。
+    既存呼び出し (MARKET / LIMIT) は新フィールドを未指定のままで動作する。
+
+    order_type:
+        - MARKET: 成行
+        - LIMIT: 指値 (intended_price で約定)
+        - STOP: 逆指値成行 (trigger_price 到達で MARKET 約定)
+        - STOP_LIMIT: 逆指値指値 (trigger_price 到達で LIMIT 約定 at intended_price)
+
+    trigger_price / trigger_above は STOP / STOP_LIMIT で必須。
+    trigger_above=False で「現在値が trigger_price 以下に到達したら発火」
+    (= long position の保護用 SELL stop)、True で「以上に到達したら発火」
+    (= short カバー用 BUY stop)。
+    """
     signal_id: str
     ticker: str
     side: str       # BUY | SELL
     qty: int
     intended_price: float
-    order_type: str  # MARKET | LIMIT
+    order_type: str  # MARKET | LIMIT | STOP | STOP_LIMIT
+    trigger_price: float | None = None
+    trigger_above: bool | None = None
 
 
 @dataclass

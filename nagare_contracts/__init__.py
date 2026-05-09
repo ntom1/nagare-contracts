@@ -41,6 +41,7 @@ from nagare_contracts.states import (  # noqa: F401
 )
 from nagare_contracts.validation import (  # noqa: F401
     ValidationError,
+    validate_order_request,
     validate_status_change,
 )
 from nagare_contracts.execution import (  # noqa: F401
