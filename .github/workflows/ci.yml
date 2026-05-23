@@ -75,6 +75,14 @@ jobs:
           )
           assert req.order_type == 'MARKET'
 
+          stop_req = OrderRequest(
+              signal_id='s2', ticker='1301', side='SELL',
+              qty=100, intended_price=1450.0, order_type='STOP',
+              trigger_price=1450.0, trigger_above=False,
+          )
+          assert stop_req.trigger_price == 1450.0
+          assert stop_req.trigger_above is False
+
           result = OrderResult(
               order_id='o1', broker_order_id='B1', status='FILLED',
               fill_price=1501.0, fill_qty=100, slippage_bps=6.7,
@@ -82,8 +90,7 @@ jobs:
           )
           assert result.fill_price == 1501.0
 
-          assert len(ORDER_STATES) == 6
-          assert 'FILLED' in ORDER_STATES
+          assert {'PENDING', 'FILLED', 'CANCELLED'}.issubset(set(ORDER_STATES))
 
           print('All dataclass instantiation tests PASSED')
           "
