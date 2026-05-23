@@ -1,11 +1,63 @@
-"""OrderIntent and ExecutionReport — cross-repo integration contracts.
+"""Signal, order, and execution contracts for cross-repo integration.
 
+SignalRequest: nagare/ronin → ronin (strategy signal generation input)
+SignalOutput: ronin → DB/nagare (strategy signal generation output)
 OrderIntent: ronin → DB → torii (approved order to execute)
 ExecutionReport: torii → DB → nagare/ronin (execution result)
 """
 
 from dataclasses import dataclass, field
 from nagare_contracts.broker import BrokerError
+
+
+@dataclass
+class SignalRequest:
+    """Input contract for ronin-owned signal generation."""
+
+    date: str
+    strategy_version: str
+    config_hash: str
+    capital: float
+    current_positions: list[str] = field(default_factory=list)
+    max_positions: int = 2
+
+
+@dataclass
+class SignalOutput:
+    """Output contract from ronin's signal generator.
+
+    signal_id is assigned by the persistence layer, so it may be empty before
+    the signal is written to DB.
+    """
+
+    ticker: str
+    side: str
+    intended_price: float
+    qty: int
+    strategy_version: str
+    config_hash: str
+    score: float = 0.0
+    filters_applied: dict = field(default_factory=dict)
+    signal_id: str | None = None
+
+
+@dataclass
+class SignalDecision:
+    """Per-candidate decision trace from ronin's signal generator.
+
+    This lets dashboards and observers consume the strategy owner's own
+    acceptance/rejection result instead of re-running a mirror filter chain.
+    """
+
+    ticker: str
+    decision: str                     # accepted | rejected
+    side: str = "BUY"
+    rejection_reason_code: str | None = None
+    filter_stage: int | None = None
+    candidate_rank: int | None = None
+    score: float = 0.0
+    blocked_by_cap: bool = False
+    metadata: dict = field(default_factory=dict)
 
 
 @dataclass

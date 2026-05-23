@@ -16,6 +16,9 @@ from nagare_contracts.broker import (  # noqa: F401
     CashMarginStatus,
 )
 from nagare_contracts.orders import (  # noqa: F401
+    SignalRequest,
+    SignalOutput,
+    SignalDecision,
     OrderIntent,
     ExecutionReport,
     EXECUTION_STATUSES,
