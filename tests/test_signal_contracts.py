@@ -1,6 +1,7 @@
 from dataclasses import asdict
 
 from nagare_contracts import SignalDecision, SignalOutput, SignalRequest
+from nagare_contracts import ops_shared
 
 
 def test_signal_request_contract_is_serializable():
@@ -65,3 +66,51 @@ def test_signal_decision_contract_is_serializable():
         "blocked_by_cap": True,
         "metadata": {"source": "ronin.signal"},
     }
+
+
+class _Cursor:
+    rowcount = 1
+
+    def __init__(self):
+        self.calls = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def execute(self, sql, params):
+        self.calls.append((sql, params))
+
+
+class _Conn:
+    def __init__(self):
+        self.cursor_obj = _Cursor()
+        self.committed = False
+        self.closed = False
+
+    def cursor(self):
+        return self.cursor_obj
+
+    def commit(self):
+        self.committed = True
+
+    def rollback(self):
+        self.rolled_back = True
+
+    def close(self):
+        self.closed = True
+
+
+def test_ops_shared_uses_configured_connection_provider():
+    conn = _Conn()
+    ops_shared.configure_connection_provider(lambda: conn)
+
+    assert ops_shared.record_heartbeat("unit", "OK", "checked", {"x": 1}) is True
+
+    assert conn.committed is True
+    assert conn.closed is True
+    sql, params = conn.cursor_obj.calls[0]
+    assert "INSERT INTO system_heartbeats" in sql
+    assert params[:4] == ("unit", "OK", "checked", '{"x": 1}')
