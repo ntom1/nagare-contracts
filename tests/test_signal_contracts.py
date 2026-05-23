@@ -1,6 +1,6 @@
 from dataclasses import asdict
 
-from nagare_contracts import SignalDecision, SignalOutput, SignalRequest
+from nagare_contracts import OrderRequest, SignalDecision, SignalOutput, SignalRequest
 from nagare_contracts import ops_shared
 
 
@@ -65,6 +65,30 @@ def test_signal_decision_contract_is_serializable():
         "score": 0.42,
         "blocked_by_cap": True,
         "metadata": {"source": "ronin.signal"},
+    }
+
+
+def test_order_request_supports_protective_stop_fields():
+    request = OrderRequest(
+        signal_id="SIG-2026-05-23-001",
+        ticker="1568",
+        side="SELL",
+        qty=100,
+        intended_price=820.0,
+        order_type="STOP",
+        trigger_price=820.0,
+        trigger_above=False,
+    )
+
+    assert asdict(request) == {
+        "signal_id": "SIG-2026-05-23-001",
+        "ticker": "1568",
+        "side": "SELL",
+        "qty": 100,
+        "intended_price": 820.0,
+        "order_type": "STOP",
+        "trigger_price": 820.0,
+        "trigger_above": False,
     }
 
 

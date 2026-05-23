@@ -20,6 +20,7 @@
 - `SignalRequest`: `ronin` のシグナル生成へ渡す入力条件
 - `SignalOutput`: `ronin` が生成し、DB / `nagare` 側の保存処理へ渡すシグナル出力
 - `OrderIntent`: `ronin` から `torii` へ渡す承認済み注文意図
+- `OrderRequest`: `torii` の Broker Protocol へ渡す発注要求。MARKET / LIMIT / STOP / STOP_LIMIT を扱う
 - `ExecutionReport`: `torii` から DB 経由で `nagare` / `ronin` へ戻す実行結果
 - `Broker`: broker-agnostic な注文・口座・建玉操作 Protocol
 - `Heartbeat`: 各コンポーネントの liveness 報告
@@ -91,6 +92,23 @@ intent = OrderIntent(
     intended_price=1500.0,
     strategy_version="BT-010",
     config_hash="bt010-hypc-sl3-pos2-vol300k",
+)
+```
+
+### OrderRequest
+
+```python
+from nagare_contracts import OrderRequest
+
+stop_order = OrderRequest(
+    signal_id="SIG-2026-05-23-001",
+    ticker="1568",
+    side="SELL",
+    qty=100,
+    intended_price=820.0,
+    order_type="STOP",
+    trigger_price=820.0,
+    trigger_above=False,
 )
 ```
 
