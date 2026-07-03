@@ -1,5 +1,5 @@
 <!--
-このテンプレートは /Users/jarvis/Development/agent-rules/templates/PULL_REQUEST_TEMPLATE.md
+このテンプレートは ~/Development/agent-rules/templates/PULL_REQUEST_TEMPLATE.md
 が正本。各 repo の .github/PULL_REQUEST_TEMPLATE.md は install-repo-rule-files.sh が
 このファイルからコピーする (差分は repo 側で持たない)。
 -->
