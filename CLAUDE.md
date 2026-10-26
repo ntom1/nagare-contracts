@@ -18,3 +18,5 @@ Skillを作成・更新する場合は、`~/.agents/skills/` や `~/.claude/skil
 Markdownは、ユーザーから明示的な指定がない限り日本語で作成・更新すること。
 <!-- agent-rules:shared-rule-end -->
 
+## Documentation vs. existing code
+When a repository's documentation and its existing code disagree, follow the conventions used in the existing code, and in your final reply point out each inconsistency you found between the documentation and the code. Exception: instructions about secrets, credentials, security, and explicitly prohibited actions always take precedence over existing code.

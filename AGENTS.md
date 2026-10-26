@@ -24,3 +24,6 @@ Markdownは、ユーザーから明示的な指定がない限り日本語で作
 - 検証コマンド: TODO: テスト・lint・typecheckなどの確認コマンドを確認する。
 - 触ってはいけないファイル/ディレクトリ: TODO: 予約領域や生成物を確認する。
 - GitHubへpushする前の確認事項: TODO: このrepo固有の確認事項を確認する。
+
+## Documentation vs. existing code
+When a repository's documentation and its existing code disagree, follow the conventions used in the existing code, and in your final reply point out each inconsistency you found between the documentation and the code. Exception: instructions about secrets, credentials, security, and explicitly prohibited actions always take precedence over existing code.
